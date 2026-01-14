@@ -9,8 +9,8 @@ Kaggle “Rossmann Store Sales” dataset containing daily sales, promotions, st
 ## Approach
 - Exploratory data analysis to understand sales distributions and store behavior
 - Feature engineering based on promotions, store types, and temporal effects
-- Time-based train/validation split to avoid leakage
-- Models evaluated using RMSE on √Sales to handle skewness
+- Custom time-based cross-validation to avoid data leakage
+- Models evaluated using RMSE on Sales to handle skewness
 
 ## Results
 - Models outperform naive baselines
@@ -18,8 +18,9 @@ Kaggle “Rossmann Store Sales” dataset containing daily sales, promotions, st
 - Error distribution is more stable after target transformation
 
 ## What I Learned
+- How to design **custom time-based cross-validation** for temporal data
 - Importance of target transformations in skewed regression problems
-- How business logic should guide feature engineering
+- Why business logic should guide feature engineering
 - Why metric choice matters as much as model choice
 
 ## Tech Stack

@@ -168,8 +168,17 @@ def train():
 
     logging.info("Splitting data with time-based strategy...")
     X_train, X_test, y_train, y_test, groups_train, groups_test = time_split(X, y, groups)
-    joblib.dump((X_train, X_test, y_train, y_test, groups_train, groups_test),
-            f"data/processed/split_data_{timestamp}.pkl")
+    joblib.dump(
+        {
+            "X_train": X_train,
+            "X_test": X_test,
+            "y_train": y_train,
+            "y_test": y_test,
+            "groups_train": groups_train,
+            "groups_test": groups_test,
+        },
+        f"data/processed/split_data_{timestamp}.pkl"
+    )
     logging.info("Saved train/test split to data/preprocessed")
 
 

@@ -1,8 +1,6 @@
 import matplotlib.pyplot as plt
 import logging
-import shap
-import yaml
-from load_data import load_processed_data, load_model, BASE_PATH
+from src.load_data import load_processed_data, load_model, BASE_PATH
 from sklearn.metrics import mean_squared_error, r2_score
 
 log_dir = BASE_PATH / "logs"
@@ -19,7 +17,9 @@ logger = logging.getLogger()
 
 def run_evaluation(plot=True):
     model = load_model()
-    X_test, y_test, X_train, y_train, X_grp, y_grp = load_processed_data()
+    data = load_processed_data()
+    X_test = data["X_test"]
+    y_test = data["y_test"]
 
     y_pred = model.predict(X_test)
 
@@ -52,9 +52,10 @@ def run_evaluation(plot=True):
         
         plt.tight_layout()
         plt.show()
+
     
     return metrics
 
 
 if __name__ == "__main__":
-    run_evaluation(plot=True)
+    run_evaluation()

@@ -6,25 +6,29 @@ import yaml
 import logging
 
 from src.preprocess import prepare_data, build_preprocessing_pipeline
-from src.load_data import load_train, load_store
+from src.load_data import load_train, load_store, BASE_PATH
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import RandomizedSearchCV, BaseCrossValidator, GridSearchCV
 from sklearn.metrics import mean_squared_error
+from datetime import datetime
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-with open("config.yaml") as f:
+config_path = BASE_PATH / "config.yaml"
+log_dir = BASE_PATH / "logs"
+
+with config_path.open("r") as f:
     config = yaml.safe_load(f)
-
-seed=config["seed"]
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler("logs/train.log")
+        logging.FileHandler(log_dir / "train.log")
     ]
 )
 
+seed=config["seed"]
 
 # Custom cross-validator to prevent time-series target leakage.
 # Ensures that training data always precedes validation data in time,
@@ -165,7 +169,7 @@ def train():
     logging.info("Splitting data with time-based strategy...")
     X_train, X_test, y_train, y_test, groups_train, groups_test = time_split(X, y, groups)
     joblib.dump((X_train, X_test, y_train, y_test, groups_train, groups_test),
-            "data/processed/split_data.pkl")
+            f"data/processed/split_data_{timestamp}.pkl")
     logging.info("Saved train/test split to data/preprocessed")
 
 
@@ -181,7 +185,7 @@ def train():
     if method == "RandomSearchCV":
         search = RandomizedSearchCV(
             estimator=full_pipeline,
-            param_distributions=config["param_dist"],
+            param_distributions=config["tuning"]["param_dist"],
             n_iter=config["tuning"]["n_iter"],
             cv=GroupTimeSeriesCV(config["tuning"]["cv"]),
             n_jobs=-1,
@@ -192,7 +196,7 @@ def train():
     elif method == "GridSearchCV":
         search = GridSearchCV(
             estimator=full_pipeline,
-            param_grid=config["param_dist"],
+            param_grid=config["tuning"]["param_dist"],
             cv=GroupTimeSeriesCV(config["tuning"]["cv"]),
             n_jobs=-1,
             verbose=1,
@@ -208,8 +212,8 @@ def train():
     logging.info(f"Tuned model best score: {search.best_score_}")
     logging.info(f"Best hyperparameters: {search.best_params_}")
 
-    joblib.dump(best_model, "models/best_model.pkl")
-    logging.info("Model saved at models/best_model.pkl")
+    joblib.dump(best_model, f"models/model_{timestamp}.pkl")
+    logging.info(f"Model saved as model_{timestamp}.pkl")
 
     return best_model
 

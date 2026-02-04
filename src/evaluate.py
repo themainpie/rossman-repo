@@ -1,3 +1,4 @@
+import pandas as pd
 import matplotlib.pyplot as plt
 import logging
 from src.load_data import load_processed_data, load_model, BASE_PATH
@@ -19,15 +20,16 @@ def run_evaluation(plot=True):
     model = load_model()
     data = load_processed_data()
     X_test = data["X_test"]
-    y_test = data["y_test"]
+    y_test = data["y_test"]**2 # converting back to it's original scale
 
     y_pred = model.predict(X_test)
+    y_pred = y_pred**2 # converting back to it's original scale
 
     mse = mean_squared_error(y_test, y_pred)
     rmse = mse ** 0.5
     r2 = r2_score(y_test, y_pred)
 
-    metrics = {'MSE': mse, 'RMSE': rmse, 'R2': r2}
+    metrics = {'MSE': round(mse, 2), 'RMSE': round(rmse, 2), 'R2': r2}
     logger.info(f"Evaluation Metrics: {metrics}")
 
     if plot:
@@ -53,8 +55,8 @@ def run_evaluation(plot=True):
         plt.tight_layout()
         plt.show()
 
-    
-    return metrics
+    model_name = model.named_steps["model"].__class__.__name__
+    return pd.DataFrame([metrics], index=[model_name])
 
 
 if __name__ == "__main__":

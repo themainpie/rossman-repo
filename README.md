@@ -1,31 +1,60 @@
 # Rossmann Store Sales Prediction
 
 ## Project Overview
-Predict daily store sales using historical data to better understand the impact of promotions, store types, and temporal patterns.
+This project focuses on forecasting daily sales for Rossmann drug stores using historical sales data, store metadata, and time-based features.
+The goal is to build a reliable time series forecasting model while following good data science practices:
+- proper validation strategy
+- feature engineering
+- avoidance of data leakage
+- clear evaluation and interpretation of results
 
 ## Dataset
 Kaggle “Rossmann Store Sales” dataset containing daily sales, promotions, store metadata, and time-based features.
+https://www.kaggle.com/competitions/rossmann-store-sales
 
 ## Approach
-- Exploratory data analysis to understand sales distributions and store behavior
-- Feature engineering based on promotions, store types, and temporal effects
-- Custom time-based cross-validation to avoid data leakage
-- Models evaluated using RMSE on Sales to handle skewness
+### 1 Exploratory Data Analysis (EDA)
+- Sales trends over time
+- Weekly and seasonal patterns
+- Effect of promotions and holidays
+- Differences across store types
+EDA notebooks are located in the notebooks/ directoyr
+
+### 2 Feature Engineering
+- calendar features (day, week, month)
+- lagged sales values
+- rolling statistics
+- promotion indicators
+- store metadata
+
+Special care was taken to avoid data leakage, especially when creating time-dependent features.
+
+### 3 Modeling
+Models were trained using a custtom group time-based train/validation split, not random splitting.
+This ensures the model is evaluated on future data only, closely matching real-world forecasting conditions.
+Modeling logic code implemented in the src/train directory
+
+### 4 Evaluation Strategy
+- Time series validation
+- Baseline model comparison
+- Evaluation on unseen future periods
+
+The main evaluation metric is RMSE, chosen because it strongly penalizes large forecasting errors, which are costly in business settings.
 
 ## Results
 - Models outperform naive baselines
-- Promotion and store type interactions are key drivers
-- Error distribution is more stable after target transformation
+- Captures seasonal patterns and promotion effects effectively
+- Demonstrates stable performance on validation data
+
+Detailed evaluation and results can be found in the evaluation notebooks.
 
 ## What I Learned
-- How to design **custom time-based cross-validation** for temporal data
+- Proper time-based validation is critical for forecasting problems
 - Importance of target transformations in skewed regression problems
-- Why business logic should guide feature engineering
+- Feature leakage can silently inflate results if not handled carefully
 - Why metric choice matters as much as model choice
 
-## Tech Stack
-Python, Pandas, NumPy, Scikit-learn, Matplotlib
-
-## Author
-**Martin Harutyunyan**  
-GitHub: https://github.com/themainpie
+## Possible Improvements
+- Hyperparameter optimization
+- Additional lag and rolling window features
+- Model ensembling

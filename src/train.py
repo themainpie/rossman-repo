@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 import xgboost as xgb
 import joblib
@@ -108,27 +107,22 @@ def time_split(X, y, groups, test_size=0.2):
     )
 
 
-def demo_train():
-    model = xgb.XGBRegressor(random_state=seed)
-    train = load_train()
-    store = load_store()
+def demo_train(X_train, X_test, y_train, y_test, preprocessor):
 
-    X, y = prepare_data(train, store, config, "Date")
-    groups = X.pop("Date")
-    X_train, X_test, y_train, y_test = time_split(X, y, groups)
-    
-    preprocessor = build_preprocessing_pipeline()
     model_pipeline = Pipeline([
         ("prep", preprocessor),
-        ("model", model)
+        ("model", xgb.XGBRegressor(enable_categorical=True))
     ])
-
+    print("starting pipeline fit...")
     model_pipeline.fit(X_train, y_train)
+    print("fitting finished.")
     y_pred = model_pipeline.predict(X_test)
 
-    score = np.sqrt(mean_squared_error(y_test, y_pred))
+    mse = mean_squared_error(y_test, y_pred)
+    rmse = mse ** 0.5
 
-    return score
+    metrics = {'MSE': round(mse, 2), 'RMSE': round(rmse, 2)}
+    return metrics
 
 
 def train():
@@ -165,9 +159,10 @@ def train():
     logging.info("Preparing features and target...")
     X, y = prepare_data(train, store, config, "Date")
     groups = X.pop("Date")
+    y_sqrt = np.sqrt(y)
 
     logging.info("Splitting data with time-based strategy...")
-    X_train, X_test, y_train, y_test, groups_train, groups_test = time_split(X, y, groups)
+    X_train, X_test, y_train, y_test, groups_train, groups_test = time_split(X, y_sqrt, groups)
     joblib.dump(
         {
             "X_train": X_train,

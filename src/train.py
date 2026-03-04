@@ -3,6 +3,7 @@ import xgboost as xgb
 import joblib
 import yaml
 import logging
+import os
 
 from src.preprocess import prepare_data, build_preprocessing_pipeline
 from src.load_data import load_train, load_store, BASE_PATH
@@ -66,30 +67,46 @@ class GroupTimeSeriesCV(BaseCrossValidator):
         return self.n_splits
 
 
-def time_split(X, y, groups, test_size=0.2):
+def split_and_save(X, y, groups, test_size=0.2, save_path=None):
     """
-    Splits features, target, and group labels into training and testing sets based on time.
+    Splits data into train and test sets based on unique group values (e.g., dates)
+    and optionally saves the split datasets to a .pkl file.
 
-    Parameters:
+    Parameters
+    ----------
     X : pd.DataFrame
-        Feature matrix.
-    y : pd.Series
-        Target variable.
+        Feature dataframe.
+    y : pd.Series or pd.DataFrame
+        Target values.
     groups : pd.Series
-        Grouping variable (e.g., dates) used to preserve temporal order.
+        Series indicating the group for each sample (e.g., dates). Splitting is
+        performed based on unique group values to avoid data leakage.
     test_size : float, default=0.2
-        Fraction of data to use as the test set.
+        Proportion of unique groups to include in the test set. Must be between 0 and 1.
+    save_path : str or None, default=None
+        Directory to save the split datasets as a .pkl file. If None, no file is saved.
 
-    Returns:
-    X_train, X_test : pd.DataFrame
-        Split feature matrices for training and testing.
-    y_train, y_test : pd.Series
-        Split target variables for training and testing.
-    groups_train, groups_test : pd.Series
-        Split groups corresponding to training and testing sets.
+    Returns
+    -------
+    X_train : pd.DataFrame
+        Training features.
+    X_test : pd.DataFrame
+        Test features.
+    y_train : pd.Series or pd.DataFrame
+        Training target.
+    y_test : pd.Series or pd.DataFrame
+        Test target.
+    groups_train : pd.Series
+        Groups corresponding to training samples.
+    groups_test : pd.Series
+        Groups corresponding to test samples.
 
-    Notes:
-    - Ensures that all rows with the same group label are kept in the same split.
+    Notes
+    -----
+    - The function ensures that all samples with the same group value are kept in
+      the same split (train or test).
+    - If `save_path` is provided, the splits are saved with a timestamped filename
+      in the format: split_data_YYYYMMDD_HHMMSS.pkl.
     """
     unique_dates = np.unique(groups)
     split_point = int(len(unique_dates) * (1 - test_size))
@@ -100,11 +117,29 @@ def time_split(X, y, groups, test_size=0.2):
     train_idx = np.where(np.isin(groups, train_dates))[0]
     test_idx = np.where(np.isin(groups, test_dates))[0]
 
-    return (
-        X.iloc[train_idx], X.iloc[test_idx],
-        y.iloc[train_idx], y.iloc[test_idx],
-        groups.iloc[train_idx], groups.iloc[test_idx]
-    )
+    X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+    y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+    groups_train, groups_test = groups.iloc[train_idx], groups.iloc[test_idx]
+
+    if save_path is not None:
+        os.makedirs(save_path, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_path = f"{save_path}/split_data_{timestamp}.pkl"
+
+        joblib.dump(
+            {
+                "X_train": X_train,
+                "X_test": X_test,
+                "y_train": y_train,
+                "y_test": y_test,
+                "groups_train": groups_train,
+                "groups_test": groups_test,
+            },
+            file_path
+        )
+        print(f"Data saved to {file_path}")
+
+    return X_train, X_test, y_train, y_test, groups_train, groups_test
 
 
 def demo_train(X_train, X_test, y_train, y_test, preprocessor):
@@ -162,7 +197,7 @@ def train():
     y_sqrt = np.sqrt(y)
 
     logging.info("Splitting data with time-based strategy...")
-    X_train, X_test, y_train, y_test, groups_train, groups_test = time_split(X, y_sqrt, groups)
+    X_train, X_test, y_train, y_test, groups_train, groups_test = split_and_save(X, y_sqrt, groups)
     joblib.dump(
         {
             "X_train": X_train,
@@ -172,9 +207,7 @@ def train():
             "groups_train": groups_train,
             "groups_test": groups_test,
         },
-        f"data/processed/split_data_{timestamp}.pkl"
-    )
-    logging.info("Saved train/test split to data/preprocessed")
+        f"data/processed/split_data_{timestamp}.pkl")
 
 
     logging.info("Building preprocessing pipeline...")

@@ -26,7 +26,7 @@ def clean_data(df, config):
     cfg = config["data_cleaning"]
 
     # log_sales filter
-    if cfg["log_sales_filter"]["enabled"]:
+    if cfg["log_sales_filter"]["enabled"] and "Sales" in df.columns:
         ranges = cfg["log_sales_filter"]["keep_ranges"]
 
         log_sales = np.log1p(df["Sales"])
@@ -41,11 +41,11 @@ def clean_data(df, config):
         df = df[mask]
 
     # customers filter
-    if cfg["customers_filter"]["enabled"]:
+    if cfg["customers_filter"]["enabled"] and "Customers" in df.columns:
         df = df[df["Customers"] < cfg["customers_filter"]["max_customers"]]
 
     # sales capping / replacement
-    if cfg["sales_capping"]["enabled"]:
+    if cfg["sales_capping"]["enabled"] and "Sales" in df.columns:
         df.loc[
             df["Sales"] > cfg["sales_capping"]["threshold"],
             "Sales"
@@ -59,44 +59,68 @@ def clean_data(df, config):
 
 def add_features(df):
     """
-    Adds engineered features to the input dataframe.
+    Adds engineered features to a dataframe (train or test), including:
+    - Date features (Year, Month, WeekOfYear)
+    - Competition and promo durations
+    - Lag, rolling, and diff features for Sales
+
+    For test data (no 'Sales'), train history is automatically loaded to compute lag features.
+
+    Args:
+        df (pd.DataFrame): Input dataframe (train or test)
 
     Returns:
-    pandas.DataFrame
-        Dataframe with newly added feature columns.
+        pd.DataFrame: Dataframe with new feature columns
     """
+    import pandas as pd
+
     df = df.copy()
 
-    # Prevent overwriting existing columns (e.g., if they were created earlier in notebook)
+    # --- Date features ---
     if "Year" not in df.columns:
         df["Year"] = pd.to_datetime(df["Date"]).dt.year
-    
     if "Month" not in df.columns:
         df["Month"] = pd.to_datetime(df["Date"]).dt.month
-
     if "WeekOfYear" not in df.columns:
         df["WeekOfYear"] = pd.to_datetime(df["Date"]).dt.isocalendar().week.astype(int)
 
-    # Calculating how long each store's competitions and promotion has been open (in months)
+    # --- Competition / Promo durations ---
     df["competition_open"] = 12 * (df.Year - df.CompetitionOpenSinceYear) + (df.Month - df.CompetitionOpenSinceMonth)
     df["PromoOpen"] = 12 * (df.Year - df.Promo2SinceYear) + (df.WeekOfYear - df.Promo2SinceWeek) / 4
 
-    # Encode weekly cycle using sine and cosine to capture day-of-week patterns
-    df["dow_sin"] = np.sin(2 * np.pi * df["DayOfWeek"] / 7)
-    df["dow_cos"] = np.cos(2 * np.pi * df["DayOfWeek"] / 7)
+    # --- Train set: compute lag/rolling features directly ---
+    if 'Sales' in df.columns:
+        df = df.sort_values(['Store', 'Date'])
+        df["lag1"] = df.groupby('Store')['Sales'].shift(1)
+        df["lag7"] = df.groupby('Store')['Sales'].shift(7)
+        df["rolling_3"] = df.groupby('Store')['Sales'].shift(1).rolling(3, min_periods=1).mean()
+        df["rolling_7"] = df.groupby('Store')['Sales'].shift(1).rolling(7, min_periods=1).mean()
+        df["diff1"] = df.groupby('Store')['Sales'].diff(1)
+        df["diff7"] = df.groupby('Store')['Sales'].diff(7)
+        return df
 
-    df["is_weekend"] = df["DayOfWeek"].isin([6, 7]).astype(int)
+    # --- Test set: automatically load train to compute lag features ---
+    from src.load_data import load_train  # replace with your actual loader
+    train_df = load_train()
+    train_df = train_df.copy()
+    train_df['is_train'] = 1
+    df['is_train'] = 0
 
-    df["lag1"] = df["Sales"].shift(1)
-    df["lag7"] = df["Sales"].shift(7)
+    combined = pd.concat([train_df, df], ignore_index=True)
+    combined = combined.sort_values(['Store', 'Date'])
 
-    df["rolling_3"] = df["Sales"].shift(1).rolling(window=3).mean()
-    df["rolling_7"] = df["Sales"].shift(1).rolling(window=7).mean()
+    combined['lag1'] = combined.groupby('Store')['Sales'].shift(1)
+    combined['lag7'] = combined.groupby('Store')['Sales'].shift(7)
+    combined['rolling_3'] = combined.groupby('Store')['Sales'].shift(1).rolling(3, min_periods=1).mean()
+    combined['rolling_7'] = combined.groupby('Store')['Sales'].shift(1).rolling(7, min_periods=1).mean()
+    combined['diff1'] = combined.groupby('Store')['Sales'].diff(1)
+    combined['diff7'] = combined.groupby('Store')['Sales'].diff(7)
 
-    df["diff1"] = df["Sales"].diff(1)
-    df["diff7"] = df["Sales"].diff(7)
+    # Return only test rows
+    test_features = combined[combined['is_train'] == 0].copy()
+    test_features.drop(columns=['is_train', 'Id'], inplace=True)
 
-    return df
+    return test_features
 
 
 def prepare_data(df, extra_df=None, config=None, target_column=None):

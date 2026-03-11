@@ -9,9 +9,11 @@ venv/
 # notebooks
 .ipynb_checkpoints/
 
+notebooks/draft.ipynb
+notebooks/rossman-proj.ipynb
+
 # data
-data/raw/*
-data/processed/*
+data/
 
 # models
 models/*.pkl

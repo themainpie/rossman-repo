@@ -15,6 +15,7 @@ timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 config_path = BASE_PATH / "config.yaml"
 log_dir = BASE_PATH / "logs"
+splitted_path = BASE_PATH / "data/splitted"
 
 with config_path.open("r") as f:
     config = yaml.safe_load(f)
@@ -67,10 +68,10 @@ class GroupTimeSeriesCV(BaseCrossValidator):
         return self.n_splits
 
 
-def split_and_save(X, y, groups, test_size=0.2, save_path=None):
+def split_and_save(X, y, groups, test_size=0.2, save=False):
     """
     Splits data into train and test sets based on unique group values (e.g., dates)
-    and optionally saves the split datasets to a .pkl file.
+    and optionally saves the split datasets to SPLITTED_DATA_DIR if base_path is True.
 
     Parameters
     ----------
@@ -79,34 +80,15 @@ def split_and_save(X, y, groups, test_size=0.2, save_path=None):
     y : pd.Series or pd.DataFrame
         Target values.
     groups : pd.Series
-        Series indicating the group for each sample (e.g., dates). Splitting is
-        performed based on unique group values to avoid data leakage.
+        Series indicating the group for each sample (e.g., dates).
     test_size : float, default=0.2
-        Proportion of unique groups to include in the test set. Must be between 0 and 1.
-    save_path : str or None, default=None
-        Directory to save the split datasets as a .pkl file. If None, no file is saved.
+        Proportion of unique groups to include in the test set.
+    base_path : bool, default=False
+        If True, saves the split datasets to SPLITTED_DATA_DIR.
 
     Returns
     -------
-    X_train : pd.DataFrame
-        Training features.
-    X_test : pd.DataFrame
-        Test features.
-    y_train : pd.Series or pd.DataFrame
-        Training target.
-    y_test : pd.Series or pd.DataFrame
-        Test target.
-    groups_train : pd.Series
-        Groups corresponding to training samples.
-    groups_test : pd.Series
-        Groups corresponding to test samples.
-
-    Notes
-    -----
-    - The function ensures that all samples with the same group value are kept in
-      the same split (train or test).
-    - If `save_path` is provided, the splits are saved with a timestamped filename
-      in the format: split_data_YYYYMMDD_HHMMSS.pkl.
+    X_train, X_test, y_train, y_test, groups_train, groups_test
     """
     unique_dates = np.unique(groups)
     split_point = int(len(unique_dates) * (1 - test_size))
@@ -121,10 +103,9 @@ def split_and_save(X, y, groups, test_size=0.2, save_path=None):
     y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
     groups_train, groups_test = groups.iloc[train_idx], groups.iloc[test_idx]
 
-    if save_path is not None:
-        os.makedirs(save_path, exist_ok=True)
+    if save:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_path = f"{save_path}/split_data_{timestamp}.pkl"
+        file_path = splitted_path / f"split_data_{timestamp}.pkl"
 
         joblib.dump(
             {
@@ -192,7 +173,7 @@ def train():
     store = load_store()
 
     logging.info("Preparing features and target...")
-    X, y = prepare_data(train, store, config, "Date")
+    X, y = prepare_data(train, store, config, "Sales")
     groups = X.pop("Date")
     y_sqrt = np.sqrt(y)
 

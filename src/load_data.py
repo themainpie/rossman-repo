@@ -7,6 +7,7 @@ BASE_PATH = Path(__file__).resolve().parents[1]
 
 RAW_DATA_DIR = BASE_PATH / "data/raw"
 PROCESSED_DATA_DIR = BASE_PATH / "data/processed"
+SPLITTED_DATA_DIR = BASE_PATH / "data/splitted"
 MODEL_DIR = BASE_PATH / "models"
 
 

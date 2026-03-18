@@ -174,6 +174,7 @@ def train():
 
     logging.info("Preparing features and target...")
     X, y = prepare_data(train, store, config, "Sales")
+    X = X.drop("Customers")
     groups = X.pop("Date")
     y_sqrt = np.sqrt(y)
 

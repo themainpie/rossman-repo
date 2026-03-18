@@ -1,22 +1,16 @@
-# python
 __pycache__/
 *.pyc
 
-# virtual env
 venv/
 .env
 
-# notebooks
 .ipynb_checkpoints/
 
 notebooks/draft.ipynb
 notebooks/rossman-proj.ipynb
 
-# data
 data/
 
-# models
 models/*.pkl
 
-# logs
 logs/

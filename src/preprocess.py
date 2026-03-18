@@ -76,7 +76,6 @@ def add_features(df):
 
     df = df.copy()
 
-    # --- Date features ---
     if "Year" not in df.columns:
         df["Year"] = pd.to_datetime(df["Date"]).dt.year
     if "Month" not in df.columns:
@@ -84,11 +83,9 @@ def add_features(df):
     if "WeekOfYear" not in df.columns:
         df["WeekOfYear"] = pd.to_datetime(df["Date"]).dt.isocalendar().week.astype(int)
 
-    # --- Competition / Promo durations ---
     df["competition_open"] = 12 * (df.Year - df.CompetitionOpenSinceYear) + (df.Month - df.CompetitionOpenSinceMonth)
     df["PromoOpen"] = 12 * (df.Year - df.Promo2SinceYear) + (df.WeekOfYear - df.Promo2SinceWeek) / 4
 
-    # --- Train set: compute lag/rolling features directly ---
     if 'Sales' in df.columns:
         df = df.sort_values(['Store', 'Date'])
         df["lag1"] = df.groupby('Store')['Sales'].shift(1)
@@ -97,10 +94,9 @@ def add_features(df):
         df["rolling_7"] = df.groupby('Store')['Sales'].shift(1).rolling(7, min_periods=1).mean()
         df["diff1"] = df.groupby('Store')['Sales'].diff(1)
         df["diff7"] = df.groupby('Store')['Sales'].diff(7)
-        return df
+        return df.drop("Customers", axis=1)
 
-    # --- Test set: automatically load train to compute lag features ---
-    from src.load_data import load_train  # replace with your actual loader
+    from src.load_data import load_train
     train_df = load_train()
     train_df = train_df.copy()
     train_df['is_train'] = 1
@@ -116,11 +112,10 @@ def add_features(df):
     combined['diff1'] = combined.groupby('Store')['Sales'].diff(1)
     combined['diff7'] = combined.groupby('Store')['Sales'].diff(7)
 
-    # Return only test rows
     test_features = combined[combined['is_train'] == 0].copy()
     test_features.drop(columns=['is_train', 'Id'], inplace=True)
 
-    return test_features
+    return test_features.drop("Customers", axis=1)
 
 
 def prepare_data(df, extra_df=None, config=None, target_column=None):

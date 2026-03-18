@@ -23,6 +23,7 @@ This project demonstrates **time series forecasting** skills. It predicts daily 
 - Weekly and seasonal patterns
 - Effects of promotions and holidays
 - Differences across store types
+
 Detailed EDA notebooks are located in the `notebooks/` directory.
 
 ![Home Page](figures/Screenshot_172740.png)

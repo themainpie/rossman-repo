@@ -9,7 +9,8 @@ venv/
 notebooks/draft.ipynb
 notebooks/rossman-proj.ipynb
 
-data/
+data/*
+!data/raw/sample_input.csv
 
 models/*.pkl
 

@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue) ![Docker](https://img.shields.io/badge/Docker-ready-blue) ![ML](https://img.shields.io/badge/ML-TimeSeries-orange)
 
-## Portfolio Summary
+## Overview 
 This project demonstrates **time series forecasting** skills. It predicts daily sales for Rossman stores using historical sales data, promotions, store metadata, and engineered features.
 
 **Key highlights:**
@@ -23,8 +23,9 @@ This project demonstrates **time series forecasting** skills. It predicts daily 
 - Weekly and seasonal patterns
 - Effects of promotions and holidays
 - Differences across store types
+Detailed EDA notebooks are located in the `notebooks/` directory.
 
-EDA notebooks are located in the `notebooks/` directory.
+![Home Page](figures/Screenshot_172740.png)
 
 ### 2. Feature Engineering
 - Calendar features (day, week, month)

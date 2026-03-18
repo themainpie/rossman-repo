@@ -1,58 +1,89 @@
 # Rossmann Store Sales Prediction
 
-## Project Overview
-This project focuses on forecasting daily sales for Rossmann drug stores using historical sales data, store metadata, and time-based features.
-The goal is to build a reliable time series forecasting model while following good data science practices:
-- proper validation strategy
-- feature engineering
-- avoidance of data leakage
-- clear evaluation and interpretation of results
+![Python](https://img.shields.io/badge/Python-3.11-blue) ![Docker](https://img.shields.io/badge/Docker-ready-blue) ![ML](https://img.shields.io/badge/ML-TimeSeries-orange)
+
+## Overview 
+This project demonstrates **time series forecasting** skills. It predicts daily sales for Rossman stores using historical sales data, promotions, store metadata, and engineered features.
+
+**Key highlights:**
+- Clean **time-based validation**
+- **Feature engineering** to capture seasonality and promotion effects
+- Dockerized demo for **easy reproducibility**
+- Interactive interface to **view predictions and download results**
 
 ## Dataset
-Kaggle “Rossmann Store Sales” dataset containing daily sales, promotions, store metadata, and time-based features.
-https://www.kaggle.com/competitions/rossmann-store-sales
+- Kaggle: “Rossman Store Sales”
+- Contains daily sales, promotions, store metadata, and time-based features
+- [Dataset link](https://www.kaggle.com/competitions/rossmann-store-sales)
 
 ## Approach
-### 1 Exploratory Data Analysis (EDA)
+
+### 1. Exploratory Data Analysis (EDA)
 - Sales trends over time
 - Weekly and seasonal patterns
-- Effect of promotions and holidays
+- Effects of promotions and holidays
 - Differences across store types
-EDA notebooks are located in the notebooks/ directoyr
+Detailed EDA notebooks are located in the `notebooks/` directory.
 
-### 2 Feature Engineering
-- calendar features (day, week, month)
-- lagged sales values
-- rolling statistics
-- promotion indicators
-- store metadata
+![Home Page](figures/Screenshot_172740.png)
 
-Special care was taken to avoid data leakage, especially when creating time-dependent features.
+### 2. Feature Engineering
+- Calendar features (day, week, month)
+- Lagged sales values
+- Rolling statistics
+- Promotion indicators
+- Store metadata
 
-### 3 Modeling
-Models were trained using a custtom group time-based train/validation split, not random splitting.
-This ensures the model is evaluated on future data only, closely matching real-world forecasting conditions.
-Modeling logic code implemented in the src/train directory
+> **Note:** Special care taken to avoid data leakage in time-dependent features.
 
-### 4 Evaluation Strategy
+### 3. Modeling
+- Models trained with **group time-based train/validation split**
+- Ensures evaluation on future data only
+- Modeling logic in `src/train/` directory
+
+### 4. Evaluation Strategy
 - Time series validation
-- Baseline model comparison
+- Baseline comparison
 - Evaluation on unseen future periods
+- Metric: **RMSE**
 
-The main evaluation metric is RMSE, chosen because it strongly penalizes large forecasting errors, which are costly in business settings.
+## Evaluation
+**Evaluation plots:**  
+![Home Page](figures/Screenshot_120051.png)
+
+**Metrics:**  
+- RMSE: 115.01
 
 ## Results
 - Models outperform naive baselines
-- Captures seasonal patterns and promotion effects effectively
-- Demonstrates stable performance on validation data
+- Captures seasonal and promotional effects
+- Stable performance on validation data
+- Detailed evaluation in notebooks
 
-Detailed evaluation and results can be found in the evaluation notebooks.
+## Demo
+
+### Running with Docker
+
+```bash
+# Build the image
+docker build -t rossman-app .
+
+# Run the container
+docker run -p 8000:8000 rossman-app
+```
+
+Open [http://localhost:8000](http://localhost:8000) to see predictions or download results.
+
+A small test input file is provided in `data/raw/sample_input.csv`.
+
+## Screenshots
+![Home Page](figures/Screenshot_121738.png)
 
 ## What I Learned
-- Proper time-based validation is critical for forecasting problems
-- Importance of target transformations in skewed regression problems
-- Feature leakage can silently inflate results if not handled carefully
-- Why metric choice matters as much as model choice
+- Time-based validation is critical in forecasting
+- Target transformations improve regression on skewed data
+- Feature leakage can silently inflate results
+- Metric choice is as important as model choice
 
 ## Possible Improvements
 - Hyperparameter optimization

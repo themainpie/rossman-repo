@@ -1,4 +1,3 @@
-import pandas as pd
 import joblib
 from pathlib import Path
 
@@ -13,18 +12,21 @@ MODEL_DIR = BASE_PATH / "models"
 
 
 def load_train():
+    import pandas as pd
     """load train CSV"""
     train = pd.read_csv(RAW_DATA_DIR / "train.csv")
     return train
 
 
 def load_test():
+    import pandas as pd
     """load test CSV"""
     test = pd.read_csv(RAW_DATA_DIR / "test.csv")
     return test
 
 
 def load_store():
+    import pandas as pd
     """load store CSV"""
     store = pd.read_csv(RAW_DATA_DIR / "store.csv")
     return store

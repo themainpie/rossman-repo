@@ -3,11 +3,11 @@ import xgboost as xgb
 import joblib
 import yaml
 import logging
-import os
 
 from src.preprocess import prepare_data, build_preprocessing_pipeline
 from src.load_data import load_train, load_store, BASE_PATH
 from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV, BaseCrossValidator, GridSearchCV
 from sklearn.metrics import mean_squared_error
 from datetime import datetime
@@ -124,10 +124,17 @@ def split_and_save(X, y, groups, test_size=0.2, save=False):
 
 
 def demo_train(X_train, X_test, y_train, y_test, preprocessor):
+    model = RandomForestRegressor(
+    n_estimators=50,
+    max_depth=6,  
+    min_samples_leaf=5,
+    n_jobs=-1,
+    random_state=42
+    )
 
     model_pipeline = Pipeline([
         ("prep", preprocessor),
-        ("model", xgb.XGBRegressor(enable_categorical=True))
+        ("model", model)
     ])
     print("starting pipeline fit...")
     model_pipeline.fit(X_train, y_train)
@@ -174,7 +181,6 @@ def train():
 
     logging.info("Preparing features and target...")
     X, y = prepare_data(train, store, config, "Sales")
-    X = X.drop("Customers")
     groups = X.pop("Date")
     y_sqrt = np.sqrt(y)
 
@@ -231,7 +237,7 @@ def train():
     logging.info(f"Tuned model best score: {search.best_score_}")
     logging.info(f"Best hyperparameters: {search.best_params_}")
 
-    joblib.dump(best_model, f"models/model_{timestamp}.pkl")
+    joblib.dump(best_model, f"models/model_{timestamp}.pkl", compress=3)
     logging.info(f"Model saved as model_{timestamp}.pkl")
 
     return best_model

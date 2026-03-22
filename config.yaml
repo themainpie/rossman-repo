@@ -22,6 +22,7 @@ tuning:
   n_iter: 30
   
   param_dist:
+    model__n_estimators: [200, 300, 400]
     model__learning_rate: [0.01, 0.03, 0.05, 0.1]
     model__max_depth: [5, 8, 12]
     model__min_child_weight: [1, 5, 10]
@@ -29,3 +30,17 @@ tuning:
     model__gamma: [0, 0.1, 0.5]
     model__reg_alpha: [0, 0.1, 1]
     model__reg_lambda: [1, 5, 10]
+    model__tree_method: ['hist']
+
+rf_tuning:
+  method: RandomSearchCV
+  cv: 3
+  n_iter: 30
+
+  param_dist:
+    model__n_estimators: [100, 200, 300, 400]
+    model__max_depth: [None, 5, 8, 12]
+    model__min_samples_split: [2, 5, 10]
+    model__min_samples_leaf: [1, 2, 4, 8]
+    model__max_features: ['auto', 'sqrt', 0.8]
+    model__bootstrap: [True, False]

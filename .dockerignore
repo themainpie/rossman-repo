@@ -7,13 +7,14 @@ venv/
 .ipynb_checkpoints/
 *.ipynb
 
-notebooks/
+notebooks/*
 
 data/*
 !data/raw/store.csv
 !data/raw/train.csv
 
-logs/
+models/*
+!models/rf_model_20260319_174529.pkl
 
 .git
 .gitignore

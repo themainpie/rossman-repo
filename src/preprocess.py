@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
@@ -168,6 +167,42 @@ def build_preprocessing_pipeline():
             ("ohe", ohe_pipeline, OHE_COLS),
             ("oe", oe_pipeline, OE_COLS),
             ("lag_features", mostf_pipeline, LAGROLL_DIFF_COLS),
+        ],
+        remainder="passthrough"
+    )
+
+    return preprocessor
+
+
+def build_preprocessing_pipeline_test():
+    """
+    Builds and returns the sklearn preprocessing pipeline.
+    """
+
+    numeric_pipeline = Pipeline([
+        ("imputer", SimpleImputer(strategy="median"))
+    ])
+
+    ohe_pipeline = Pipeline([
+        ("imputer", SimpleImputer(strategy="most_frequent")),
+        ("ohe", OneHotEncoder(handle_unknown="ignore", sparse_output=False))
+    ])
+
+    oe_pipeline = Pipeline([
+        ("imputer", SimpleImputer(strategy="most_frequent")),
+        ("oe_encode", OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1))
+    ])
+
+    lag_pipeline = Pipeline([
+        ("imputer", SimpleImputer(strategy="most_frequent"))
+    ])
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("num", numeric_pipeline, IMPUTE_ONLY_COLS),
+            ("ohe", ohe_pipeline, OHE_COLS),
+            ("oe", oe_pipeline, OE_COLS),
+            ("lag", lag_pipeline, LAGROLL_DIFF_COLS),
         ],
         remainder="passthrough"
     )

@@ -97,3 +97,4 @@ The app is also deployed in the cloud, so you can try it using the sample input.
 - Hyperparameter optimization
 - Additional lag and rolling window features
 - Model ensembling
+- Model optimization 

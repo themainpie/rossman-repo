@@ -63,7 +63,9 @@ Detailed EDA notebooks are located in the `notebooks/` directory.
 
 ## Demo
 
-### Running with Docker
+This project isn’t just about building a model—it’s about making it actually usable. Initially, I experimented with XGBoost, which gave great accuracy but was a bit heavy for deployment. To keep things fast and light, I switched to a Random Forest version optimized for production.
+
+### Running Locally with Docker
 
 ```bash
 # Build the image
@@ -77,8 +79,13 @@ Open [http://localhost:8000](http://localhost:8000) to see predictions or downlo
 
 A small test input file is provided in `data/raw/sample_input.csv`.
 
+### Running in the Cloud
+The app is also deployed in the cloud, so you can try it using the sample input.
+
+[Rossman App Live Demo](https://rossman-app-latest.onrender.com)
+
 ## Screenshots
-![Home Page](figures/Screenshot_121738.png)
+![Home Page](figures/Screenshot_175544.png)
 
 ## What I Learned
 - Time-based validation is critical in forecasting
